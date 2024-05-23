@@ -355,9 +355,9 @@ void SanguineLightUpSwitch::drawLayer(const DrawArgs& args, int layer) {
 	Widget::drawLayer(args, layer);
 }
 
-Befaco2StepSwitch::Befaco2StepSwitch() {
-	addFrame(Svg::load(asset::system("res/ComponentLibrary/BefacoSwitch_0.svg")));
-	addFrame(Svg::load(asset::system("res/ComponentLibrary/BefacoSwitch_2.svg")));
+SanguineBezel8mm::SanguineBezel8mm() {
+	momentary = true;
+	addFrame(Svg::load(asset::plugin(pluginInstance, "res/components/light_button_8mm.svg")));
 }
 
 // Decorations

@@ -133,8 +133,8 @@ struct SanguineLightUpSwitch : app::SvgSwitch {
 	void drawLayer(const DrawArgs& args, int layer) override;
 };
 
-struct Befaco2StepSwitch : app::SvgSwitch {
-	Befaco2StepSwitch();
+struct SanguineBezel8mm : app::SvgSwitch {
+	SanguineBezel8mm();
 };
 
 // Lights
@@ -153,6 +153,15 @@ struct TPurpleLight : TBase {
 	}
 };
 using PurpleLight = TPurpleLight<>;
+
+template <typename TBase>
+struct SanguineBezelLight8mm : TBase {
+	SanguineBezelLight8mm() {
+		this->borderColor = color::BLACK_TRANSPARENT;
+		this->bgColor = color::BLACK_TRANSPARENT;
+		this->box.size = mm2px(math::Vec(6.526, 6.526));
+	}
+};
 
 // Decorations
 
