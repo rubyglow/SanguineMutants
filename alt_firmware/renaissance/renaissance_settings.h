@@ -168,7 +168,7 @@ enum Setting {
   SETTING_AD_FM,
   SETTING_AD_COLOR,
   SETTING_AD_VCA,
-  SETTING_ENCODER_DIRECTION,
+  //SETTING_ENCODER_DIRECTION,
   SETTING_QUANTIZER_ROOT,
   SETTING_LAST_EDITABLE_SETTING = SETTING_QUANTIZER_ROOT,
 
@@ -199,7 +199,7 @@ struct SettingsData {
   uint8_t ad_fm;
   uint8_t ad_color;
   uint8_t ad_vca;
-  uint8_t invert_encoder;
+  //uint8_t invert_encoder;
   uint8_t quantizer_root;
 
   int32_t pitch_cv_offset;
@@ -276,9 +276,11 @@ class Settings {
     return data_.meta_modulation;
   }
 
+  /*
   inline bool invert_encoder() const {
     return data_.invert_encoder;
   }
+  */
 
   inline uint8_t trig_delay() const {
     return data_.trig_delay;
@@ -341,7 +343,7 @@ class Settings {
   }
 
   inline int32_t pitch_transposition() const {
-    int32_t t = data_.pitch_range == PITCH_RANGE_LFO ? -36 << 7 : 0;
+    int32_t t = data_.pitch_range == PITCH_RANGE_LFO ? int32_t(-36 * 128) : 0;
     t += (static_cast<int32_t>(data_.pitch_octave) - 2) * 12 * 128;
     return t;
   }
