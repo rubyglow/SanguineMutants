@@ -12,13 +12,13 @@ static const std::vector<std::string> modeList{
 static const std::string cvSuffix = " CV";
 
 struct ModeDisplay {
-	std::string freezeLabel;
-	std::string positionLabel;
-	std::string densityLabel;
-	std::string sizeLabel;
-	std::string textureLabel;
-	std::string pitchLabel;
-	std::string triggerLabel;
+	std::string labelFreeze;
+	std::string labelPosition;
+	std::string labelDensity;
+	std::string labelSize;
+	std::string labelTexture;
+	std::string labelPitch;
+	std::string labelTrigger;
 };
 
 static const std::vector<ModeDisplay> modeDisplays{
@@ -101,13 +101,13 @@ struct Nebulae : Module {
 	LedModes lastLedMode = LEDS_INPUT;
 
 	std::string modeText = modeList[0];
-	std::string freezeText = modeDisplays[0].freezeLabel;
-	std::string positionText = modeDisplays[0].positionLabel;
-	std::string densityText = modeDisplays[0].densityLabel;
-	std::string sizeText = modeDisplays[0].sizeLabel;
-	std::string textureText = modeDisplays[0].textureLabel;
-	std::string pitchText = modeDisplays[0].pitchLabel;
-	std::string triggerText = modeDisplays[0].triggerLabel;
+	std::string freezeText = modeDisplays[0].labelFreeze;
+	std::string positionText = modeDisplays[0].labelPosition;
+	std::string densityText = modeDisplays[0].labelDensity;
+	std::string sizeText = modeDisplays[0].labelSize;
+	std::string textureText = modeDisplays[0].labelTexture;
+	std::string pitchText = modeDisplays[0].labelPitch;
+	std::string triggerText = modeDisplays[0].labelTrigger;
 
 	dsp::SampleRateConverter<2> inputSrc;
 	dsp::SampleRateConverter<2> outputSrc;
@@ -362,33 +362,33 @@ struct Nebulae : Module {
 			if (playbackMode != lastPlaybackMode) {
 				modeText = modeList[playbackMode];
 
-				freezeText = modeDisplays[playbackMode].freezeLabel;
-				positionText = modeDisplays[playbackMode].positionLabel;
-				densityText = modeDisplays[playbackMode].densityLabel;
-				sizeText = modeDisplays[playbackMode].sizeLabel;
-				textureText = modeDisplays[playbackMode].textureLabel;
-				pitchText = modeDisplays[playbackMode].pitchLabel;
-				triggerText = modeDisplays[playbackMode].triggerLabel;
+				freezeText = modeDisplays[playbackMode].labelFreeze;
+				positionText = modeDisplays[playbackMode].labelPosition;
+				densityText = modeDisplays[playbackMode].labelDensity;
+				sizeText = modeDisplays[playbackMode].labelSize;
+				textureText = modeDisplays[playbackMode].labelTexture;
+				pitchText = modeDisplays[playbackMode].labelPitch;
+				triggerText = modeDisplays[playbackMode].labelTrigger;
 
-				paramQuantities[PARAM_FREEZE]->name = modeTooltips[playbackMode].freezeLabel;
-				inputInfos[INPUT_FREEZE]->name = modeTooltips[playbackMode].freezeLabel + cvSuffix;
+				paramQuantities[PARAM_FREEZE]->name = modeTooltips[playbackMode].labelFreeze;
+				inputInfos[INPUT_FREEZE]->name = modeTooltips[playbackMode].labelFreeze + cvSuffix;
 
-				paramQuantities[PARAM_POSITION]->name = modeTooltips[playbackMode].positionLabel;
-				inputInfos[INPUT_POSITION]->name = modeTooltips[playbackMode].positionLabel + cvSuffix;
+				paramQuantities[PARAM_POSITION]->name = modeTooltips[playbackMode].labelPosition;
+				inputInfos[INPUT_POSITION]->name = modeTooltips[playbackMode].labelPosition + cvSuffix;
 
-				paramQuantities[PARAM_DENSITY]->name = modeTooltips[playbackMode].densityLabel;
-				inputInfos[INPUT_DENSITY]->name = modeTooltips[playbackMode].densityLabel + cvSuffix;
+				paramQuantities[PARAM_DENSITY]->name = modeTooltips[playbackMode].labelDensity;
+				inputInfos[INPUT_DENSITY]->name = modeTooltips[playbackMode].labelDensity + cvSuffix;
 
-				paramQuantities[PARAM_SIZE]->name = modeTooltips[playbackMode].sizeLabel;
-				inputInfos[INPUT_SIZE]->name = modeTooltips[playbackMode].sizeLabel + cvSuffix;
+				paramQuantities[PARAM_SIZE]->name = modeTooltips[playbackMode].labelSize;
+				inputInfos[INPUT_SIZE]->name = modeTooltips[playbackMode].labelSize + cvSuffix;
 
-				paramQuantities[PARAM_TEXTURE]->name = modeTooltips[playbackMode].textureLabel;
-				inputInfos[INPUT_TEXTURE]->name = modeTooltips[playbackMode].textureLabel + cvSuffix;
+				paramQuantities[PARAM_TEXTURE]->name = modeTooltips[playbackMode].labelTexture;
+				inputInfos[INPUT_TEXTURE]->name = modeTooltips[playbackMode].labelTexture + cvSuffix;
 
-				paramQuantities[PARAM_PITCH]->name = modeTooltips[playbackMode].pitchLabel;
-				inputInfos[INPUT_PITCH]->name = modeTooltips[playbackMode].pitchLabel + cvSuffix;
+				paramQuantities[PARAM_PITCH]->name = modeTooltips[playbackMode].labelPitch;
+				inputInfos[INPUT_PITCH]->name = modeTooltips[playbackMode].labelPitch + cvSuffix;
 
-				inputInfos[INPUT_TRIGGER]->name = modeTooltips[playbackMode].triggerLabel;
+				inputInfos[INPUT_TRIGGER]->name = modeTooltips[playbackMode].labelTrigger;
 
 				lastPlaybackMode = playbackMode;
 			}
