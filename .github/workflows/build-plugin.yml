@@ -1,7 +1,16 @@
 name: Build VCV Rack Plugin
 #on: [push, pull_request]
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+  schedule:
+   # It's always night... somewhere
+   #        +--------- minute (0 - 59)
+   #        ¦ +--------- hour (0 - 23)
+   #        ¦ ¦ +--------- day of the month (1 - 31)
+   #        ¦ ¦ ¦ +--------- month (1 - 12 or JAN-DEC)
+   #        ¦ ¦ ¦ ¦ +--------- day of the week (0 - 6 or SUN-SAT)
+   - cron: '56 18 * * *'  # Every day at 18:56 UTC
 
 env:
   rack-sdk-version: latest
@@ -139,9 +148,7 @@ jobs:
 #          file_glob: true
 
   publish-nightly:
-    name: Publish Nightly
-    # only create a release if a tag was created that is called e.g. v1.2.3
-    # see also https://vcvrack.com/manual/Manifest#version
+    name: Publish Nightly 
     #if: ${{ github.ref == 'refs/heads/mutantsdev' && github.repository_owner == 'Bloodbat' }}
     if: ${{ github.repository_owner == 'Bloodbat' }}
     runs-on: ubuntu-latest
