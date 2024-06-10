@@ -558,14 +558,14 @@ struct Nodi : Module {
 			displayTimeout++;
 		}
 
-		if (displayTimeout > 1.0 * args.sampleRate) {
+		if (displayTimeout > args.sampleRate) {
 			lastSettingChanged = braids::SETTING_OSCILLATOR_SHAPE;
 			displayTimeout = 0;
 		}
 
 		uint8_t* arrayLastSettings = &lastSettings.shape;
 		uint8_t* arraySettings = &settings.shape;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i <= braids::SETTING_LAST_EDITABLE_SETTING; i++) {
 			if (arraySettings[i] != arrayLastSettings[i]) {
 				arrayLastSettings[i] = arraySettings[i];
 				lastSettingChanged = static_cast<braids::Setting>(i);
@@ -761,14 +761,16 @@ struct NodiWidget : ModuleWidget {
 
 		menu->addChild(new MenuSeparator);
 
-		std::vector<std::string> shapeLabels;
+		std::vector<std::string> modelLabels;
 		for (int i = 0; i < int(modelInfos.size() - 1); i++) {
-			shapeLabels.push_back(modelInfos[i].code + ": " + modelInfos[i].label);
+			modelLabels.push_back(modelInfos[i].code + ": " + modelInfos[i].label);
 		}
-		menu->addChild(createIndexSubmenuItem("Model", shapeLabels,
+		menu->addChild(createIndexSubmenuItem("Model", modelLabels,
 			[=]() {return module->getModelParam(); },
 			[=](int i) {module->setModelParam(i); }
 		));
+
+		menu->addChild(new MenuSeparator);
 
 		menu->addChild(createBoolPtrMenuItem("Low CPU (disable resampling)", "", &module->bLowCpu));
 	}

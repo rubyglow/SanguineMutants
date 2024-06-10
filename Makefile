@@ -42,7 +42,6 @@ SOURCES += eurorack/braids/resources.cc
 SOURCES += eurorack/braids/quantizer.cc
 
 SOURCES += alt_firmware/renaissance/renaissance_macro_oscillator.cc
-SOURCES += alt_firmware/renaissance/renaissance_analog_oscillator.cc
 SOURCES += alt_firmware/renaissance/renaissance_digital_oscillator.cc
 SOURCES += alt_firmware/renaissance/renaissance_resources.cc
 SOURCES += alt_firmware/renaissance/renaissance_quantizer.cc
@@ -53,6 +52,36 @@ SOURCES += alt_firmware/renaissance/vocalist/vocalist.cc
 SOURCES += alt_firmware/renaissance/vocalist/sam.cc
 SOURCES += alt_firmware/renaissance/vocalist/wordlist.cc
 SOURCES += alt_firmware/renaissance/vocalist/rendertabs.cc
+
+SOURCES += eurorack/clouds/dsp/correlator.cc
+SOURCES += eurorack/clouds/dsp/granular_processor.cc
+SOURCES += eurorack/clouds/dsp/mu_law.cc
+SOURCES += eurorack/clouds/dsp/pvoc/frame_transformation.cc
+SOURCES += eurorack/clouds/dsp/pvoc/phase_vocoder.cc
+SOURCES += eurorack/clouds/dsp/pvoc/stft.cc
+SOURCES += eurorack/clouds/resources.cc 
+
+SOURCES += alt_firmware/clouds_parasite/dsp/etesia_granular_processor.cc
+SOURCES += alt_firmware/clouds_parasite/etesia_resources.cc
+SOURCES += alt_firmware/clouds_parasite/dsp/etesia_correlator.cc
+SOURCES += alt_firmware/clouds_parasite/dsp/etesia_mu_law.cc
+SOURCES += alt_firmware/clouds_parasite/dsp/pvoc/etesia_frame_transformation.cc
+SOURCES += alt_firmware/clouds_parasite/dsp/pvoc/etesia_phase_vocoder.cc
+SOURCES += alt_firmware/clouds_parasite/dsp/pvoc/etesia_stft.cc
+
+SOURCES += alt_firmware/deadman/deadman_processors.cc
+SOURCES += alt_firmware/deadman/deadman_resources.cc
+SOURCES += alt_firmware/deadman/drums/deadman_bass_drum.cc
+SOURCES += alt_firmware/deadman/drums/deadman_fm_drum.cc
+SOURCES += alt_firmware/deadman/drums/deadman_high_hat.cc
+SOURCES += alt_firmware/deadman/drums/deadman_snare_drum.cc
+SOURCES += alt_firmware/deadman/modulations/deadman_lfo.cc
+SOURCES += alt_firmware/deadman/modulations/deadman_multistage_envelope.cc
+SOURCES += alt_firmware/deadman/pulse_processor/deadman_pulse_shaper.cc
+SOURCES += alt_firmware/deadman/pulse_processor/deadman_pulse_randomizer.cc
+SOURCES += alt_firmware/deadman/number_station/deadman_number_station.cc
+SOURCES += alt_firmware/deadman/number_station/deadman_bytebeats.cc
+SOURCES += alt_firmware/deadman/drums/deadman_cymbal.cc
 
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 

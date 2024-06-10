@@ -5,9 +5,9 @@
 #include "contextusconsts.hpp"
 
 #include "renaissance/renaissance_macro_oscillator.h"
-#include "renaissance/renaissance_signature_waveshaper.h"
-#include "renaissance/renaissance_vco_jitter_source.h"
-#include "renaissance/renaissance_envelope.h"
+#include "braids/signature_waveshaper.h"
+#include "braids/vco_jitter_source.h"
+#include "braids/envelope.h"
 #include "renaissance/renaissance_quantizer.h"
 #include "renaissance/renaissance_quantizer_scales.h"
 
@@ -138,9 +138,9 @@ struct Contextus : Module {
 
 	renaissance::MacroOscillator osc;
 	renaissance::SettingsData settings;
-	renaissance::VcoJitterSource jitterSource;
-	renaissance::SignatureWaveshaper waveShaper;
-	renaissance::Envelope envelope;
+	braids::VcoJitterSource jitterSource;
+	braids::SignatureWaveshaper waveShaper;
+	braids::Envelope envelope;
 	renaissance::Quantizer quantizer;
 
 	uint8_t currentScale = 0xff;
@@ -367,7 +367,7 @@ struct Contextus : Module {
 			pitch = clamp(int(pitch), 0, 16383);
 
 			if (settings.vco_flatten) {
-				pitch = renaissance::Interpolate88(renaissance::lut_vco_detune, pitch << 2);
+				pitch = braids::Interpolate88(renaissance::lut_vco_detune, pitch << 2);
 			}
 
 			// Pitch transposition
@@ -377,7 +377,7 @@ struct Contextus : Module {
 
 			if (bTriggerFlag) {
 				osc.Strike();
-				envelope.Trigger(renaissance::ENV_SEGMENT_ATTACK);
+				envelope.Trigger(braids::ENV_SEGMENT_ATTACK);
 				bTriggerFlag = false;
 			}
 
@@ -546,14 +546,14 @@ struct Contextus : Module {
 			displayTimeout++;
 		}
 
-		if (displayTimeout > 1.0 * args.sampleRate) {
+		if (displayTimeout > args.sampleRate) {
 			lastSettingChanged = renaissance::SETTING_OSCILLATOR_SHAPE;
 			displayTimeout = 0;
 		}
 
 		uint8_t* arrayLastSettings = &lastSettings.shape;
 		uint8_t* arraySettings = &settings.shape;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i <= renaissance::SETTING_LAST_EDITABLE_SETTING; i++) {
 			if (arraySettings[i] != arrayLastSettings[i]) {
 				arrayLastSettings[i] = arraySettings[i];
 				lastSettingChanged = static_cast<renaissance::Setting>(i);
@@ -746,14 +746,16 @@ struct ContextusWidget : ModuleWidget {
 
 		menu->addChild(new MenuSeparator);
 
-		std::vector<std::string> shapeLabels;
+		std::vector<std::string> modelLabels;
 		for (int i = 0; i < int(modelInfos.size()); i++) {
-			shapeLabels.push_back(modelInfos[i].code + ": " + modelInfos[i].label);
+			modelLabels.push_back(modelInfos[i].code + ": " + modelInfos[i].label);
 		}
-		menu->addChild(createIndexSubmenuItem("Model", shapeLabels,
+		menu->addChild(createIndexSubmenuItem("Model", modelLabels,
 			[=]() {return module->getModelParam(); },
 			[=](int i) {module->setModelParam(i); }
 		));
+
+		menu->addChild(new MenuSeparator);
 
 		menu->addChild(createBoolPtrMenuItem("Low CPU (disable resampling)", "", &module->bLowCpu));
 	}

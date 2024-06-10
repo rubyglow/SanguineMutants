@@ -276,9 +276,10 @@ class Settings {
     return data_.meta_modulation;
   }
 
+  
   inline bool invert_encoder() const {
     return data_.invert_encoder;
-  }
+  }  
 
   inline uint8_t trig_delay() const {
     return data_.trig_delay;
@@ -341,7 +342,7 @@ class Settings {
   }
 
   inline int32_t pitch_transposition() const {
-    int32_t t = data_.pitch_range == PITCH_RANGE_LFO ? -36 << 7 : 0;
+    int32_t t = data_.pitch_range == PITCH_RANGE_LFO ? int32_t(-36 * 128) : 0;
     t += (static_cast<int32_t>(data_.pitch_octave) - 2) * 12 * 128;
     return t;
   }

@@ -29,8 +29,7 @@ enum ProcessorFunction {
 	FUNCTION_FM_DRUM_GENERATOR,
 	FUNCTION_NUMBER_STATION,
 	FUNCTION_BOUNCING_BALL,
-	FUNCTION_LAST,
-	FUNCTION_FIRST_ALTERNATE_FUNCTION = FUNCTION_MINI_SEQUENCER
+	FUNCTION_LAST
 };
 
 struct Settings {
@@ -50,6 +49,7 @@ static const uint16_t kAdcThresholdUnlocked = 1 << (16 - 10);  // 10 bits
 static const uint16_t kAdcThresholdLocked = 1 << (16 - 8);  // 8 bits
 
 static const uint8_t kButtonCount = 3;
+static const uint8_t kInputCount = 2;
 
 static const std::vector<std::string> modeList{
 	"ENVELOPE",
@@ -62,6 +62,58 @@ static const std::vector<std::string> modeList{
 	"DIGI DRUMS*",
 	"NUMBER STAT&",
 	"BOUNCE BALL@"
+};
+
+struct KnobLabels {
+	std::string knob1;
+	std::string knob2;
+	std::string knob3;
+	std::string knob4;
+};
+
+static const std::vector<KnobLabels> knobLabelsSplitMode{
+	{ "1. Attack", "1. Decay", "2. Attack",  "2. Decay" },
+	{ "1. Frequency", "1. Waveform", "2. Frequency", "2. Waveform" },
+	{ "1. Waveform", "1. Wave. Var.", "2. Waveform", "2. Wave. Var." },
+	{ "1. BD Tone", "1. BD Decay", "2. SD Tone", "2. SD Snappy" },
+	{ "1. Step 1", "1. Step 2", "2. Step 1", "2. Step 2" },
+	{ "1. Delay", "1. Repeats #", "2. Delay", "2. Repeats #" },
+	{ "1. Acc/Rgn. Prob", "1. Delay", "2. Acc/Rgn. Prob", "2. Delay" },
+	{ "1. BD Morph", "1. BD Variation", "2. SD Morph", "2. SD Variation" },
+	{ "1. Frequency", "1. Var. Prob", "2. Frequency", "2. Var. Prob" },
+	{ "1. Gravity", "1. Bounce", "2. Gravity", "2. Bounce" }
+};
+
+static const std::vector<KnobLabels> knobLabelsTwinMode{
+	{ "Attack", "Decay", "Sustain", "Release" },
+	{ "Frequency", "Waveform", "Wave. Var", "Phase" },
+	{ "Amplitude", "Waveform", "Wave. Var", "Phase" },
+	{ "Base Freq", "Freq. Mod", "High Freq.", "Decay" },
+	{ "Step 1", "Step 2", "Step 3", "Step 4" },
+	{ "Pre-delay", "Gate time", "Delay", "Repeats #" },
+	{ "Trg. Prob.", "Regen Prob.", "Delay time", "Jitter" },
+	{ "Frequency", "FM Intens", "Env. Decay", "Color" },
+	{ "Frequency", "Var. Prob.", "Noise", "Distortion" },
+	{ "Gravity", "Bounce", "Amplitude", "Velocity" }
+};
+
+enum LightModes {
+	LIGHT_OFF,
+	LIGHT_ON,
+	LIGHT_BLINK
+};
+
+static const LightModes lightStates[FUNCTION_LAST][4]{
+	{ LIGHT_ON,  LIGHT_OFF, LIGHT_OFF, LIGHT_OFF }, // Envelope
+	{ LIGHT_OFF, LIGHT_ON, LIGHT_OFF, LIGHT_OFF }, // LFO
+	{ LIGHT_OFF, LIGHT_OFF, LIGHT_ON, LIGHT_OFF }, // TAP LFO
+	{ LIGHT_OFF, LIGHT_OFF, LIGHT_OFF, LIGHT_ON }, // DRUM GENERAT
+	{ LIGHT_BLINK, LIGHT_OFF, LIGHT_OFF, LIGHT_OFF }, // SEQUENCER
+	{ LIGHT_OFF, LIGHT_BLINK, LIGHT_OFF, LIGHT_OFF }, // TRG. SHAPE*
+	{ LIGHT_OFF, LIGHT_OFF, LIGHT_BLINK, LIGHT_OFF }, // TRG. RANDOM*
+	{ LIGHT_OFF, LIGHT_OFF, LIGHT_OFF, LIGHT_BLINK }, // DIGI DRUMS*
+	{ LIGHT_OFF, LIGHT_OFF, LIGHT_OFF, LIGHT_OFF }, // NUMBER STAT&
+	{ LIGHT_ON, LIGHT_OFF, LIGHT_BLINK, LIGHT_BLINK } // BOUNCE BALL@
 };
 
 struct Apices : Module {
@@ -122,7 +174,8 @@ struct Apices : Module {
 	int16_t output[kBlockSize] = {};
 	int16_t brightness[kNumChannels] = { 0, 0 };
 
-	dsp::SchmittTrigger switches[kButtonCount];
+	dsp::SchmittTrigger stSwitches[kButtonCount];
+	dsp::SchmittTrigger stInputTriggers[kInputCount];
 
 	// update descriptions/oleds every 16 samples
 	static const int kClockUpdateFrequency = 16;
@@ -213,10 +266,10 @@ struct Apices : Module {
 			updateOleds();
 		}
 
-		ProcessorFunction CurrentFunction = getProcessorFunction();
-		if (params[PARAM_MODE].getValue() != CurrentFunction) {
-			CurrentFunction = static_cast<ProcessorFunction>(params[PARAM_MODE].getValue());
-			setFunction(editMode - EDIT_MODE_FIRST, CurrentFunction);
+		ProcessorFunction currentFunction = getProcessorFunction();
+		if (params[PARAM_MODE].getValue() != currentFunction) {
+			currentFunction = static_cast<ProcessorFunction>(params[PARAM_MODE].getValue());
+			setFunction(editMode - EDIT_MODE_FIRST, currentFunction);
 			saveState();
 		}
 
@@ -228,8 +281,8 @@ struct Apices : Module {
 			}
 
 			uint32_t gateTriggers = 0;
-			gateTriggers |= (inputs[GATE_1_INPUT].getVoltage() ? 1 : 0);
-			gateTriggers |= (inputs[GATE_2_INPUT].getVoltage() ? 2 : 0);
+			gateTriggers |= (stInputTriggers[0].process(inputs[GATE_1_INPUT].getVoltage()) ? 1 : 0);
+			gateTriggers |= (stInputTriggers[1].process(inputs[GATE_2_INPUT].getVoltage()) ? 2 : 0);
 
 			uint32_t buttons = 0;
 			buttons |= (params[PARAM_TRIGGER_1].getValue() ? 1 : 0);
@@ -427,7 +480,7 @@ struct Apices : Module {
 
 	void pollSwitches(const ProcessArgs& args) {
 		for (uint8_t i = 0; i < kButtonCount; ++i) {
-			if (switches[i].process(params[PARAM_EDIT_MODE + i].getValue())) {
+			if (stSwitches[i].process(params[PARAM_EDIT_MODE + i].getValue())) {
 				processSwitch(SWITCH_TWIN_MODE + i);
 			}
 		}
@@ -515,28 +568,30 @@ struct Apices : Module {
 		lights[LIGHT_SPLIT_MODE].setBrightnessSmooth((editMode == EDIT_MODE_SPLIT) ? 1.0f : 0.0f, sampleTime);
 		lights[LIGHT_EXPERT_MODE].setBrightnessSmooth((editMode & 2) ? 1.0F : 0.F, sampleTime);
 
-		if (getProcessorFunction() == FUNCTION_BOUNCING_BALL) {
-			lights[LIGHT_FUNCTION_1].setBrightnessSmooth(1.0f, sampleTime);
-			lights[LIGHT_FUNCTION_1 + 1].setBrightnessSmooth(0.f, sampleTime);
-			if (getSystemTimeMs() & 256) {
-				lights[LIGHT_FUNCTION_1 + 2].setBrightnessSmooth(0.f, sampleTime);
-				lights[LIGHT_FUNCTION_1 + 3].setBrightnessSmooth(0.f, sampleTime);
+		ProcessorFunction currentProcessorFunction = getProcessorFunction();
+		for (int i = 0; i < 4; i++) {
+			currentLight = LIGHT_FUNCTION_1 + i;
+			switch (lightStates[currentProcessorFunction][i]) {
+			case LIGHT_ON: {
+				lights[currentLight].setBrightnessSmooth(1.0f, sampleTime);
+				break;
 			}
-			else {
-				lights[LIGHT_FUNCTION_1 + 2].setBrightnessSmooth(1.f, sampleTime);
-				lights[LIGHT_FUNCTION_1 + 3].setBrightnessSmooth(1.f, sampleTime);
+			case LIGHT_OFF: {
+				lights[currentLight].setBrightnessSmooth(0.0f, sampleTime);
+				break;
 			}
-		}
-		else {
-			if ((getSystemTimeMs() & 256) && getProcessorFunction() >= FUNCTION_FIRST_ALTERNATE_FUNCTION) {
-				for (size_t i = 0; i < 4; ++i) {
-					lights[LIGHT_FUNCTION_1 + i].setBrightnessSmooth(0.0f, sampleTime);
+			case LIGHT_BLINK: {
+				if (getSystemTimeMs() & 256) {
+					lights[currentLight].setBrightnessSmooth(0.0f, sampleTime);
 				}
-			}
-			else {
-				for (size_t i = 0; i < 4; ++i) {
-					lights[LIGHT_FUNCTION_1 + i].setBrightnessSmooth(((getProcessorFunction() & 3) == i) ? 1.0f : 0.0f, sampleTime);
+				else {
+					lights[currentLight].setBrightnessSmooth(1.0f, sampleTime);
 				}
+				break;
+			}
+			default: {
+				break;
+			}
 			}
 		}
 
@@ -596,8 +651,8 @@ struct Apices : Module {
 			}
 		}
 
-		lights[LIGHT_TRIGGER_1].setSmoothBrightness(rescale(static_cast<float>(buttonBrightness[0]), 0.0f, 255.0f, 0.0f, 1.0f), sampleTime);
-		lights[LIGHT_TRIGGER_2].setSmoothBrightness(rescale(static_cast<float>(buttonBrightness[1]), 0.0f, 255.0f, 0.0f, 1.0f), sampleTime);
+		lights[LIGHT_TRIGGER_1].setBrightnessSmooth(rescale(static_cast<float>(buttonBrightness[0]), 0.0f, 255.0f, 0.0f, 1.0f), sampleTime);
+		lights[LIGHT_TRIGGER_2].setBrightnessSmooth(rescale(static_cast<float>(buttonBrightness[1]), 0.0f, 255.0f, 0.0f, 1.0f), sampleTime);
 	}
 
 	void onReset() override {
@@ -638,79 +693,10 @@ struct Apices : Module {
 
 	void updateOleds() {
 		if (editMode == EDIT_MODE_SPLIT) {
-			switch (processorFunction[0]) {
-			case FUNCTION_ENVELOPE: {
-				oledText1 = "1. Attack";
-				oledText2 = "1. Decay";
-				oledText3 = "2. Attack";
-				oledText4 = "2. Decay";
-				break;
-			}
-			case FUNCTION_LFO: {
-				oledText1 = "1. Frequency";
-				oledText2 = "1. Waveform";
-				oledText3 = "2. Frequency";
-				oledText4 = "2. Waveform";
-				break;
-			}
-			case FUNCTION_TAP_LFO: {
-				oledText1 = "1. Waveform";
-				oledText2 = "1. Wave. Var.";
-				oledText3 = "2. Waveform";
-				oledText4 = "2. Wave. Var.";
-				break;
-			}
-			case FUNCTION_DRUM_GENERATOR: {
-				oledText1 = "1. BD Tone";
-				oledText2 = "1. BD Decay";
-				oledText3 = "2. SD Tone";
-				oledText4 = "2. SD Snappy";
-				break;
-			}
-			case FUNCTION_MINI_SEQUENCER: {
-				oledText1 = "1. Step 1";
-				oledText2 = "1. Step 2";
-				oledText3 = "2. Step 1";
-				oledText4 = "2. Step 2";
-				break;
-			}
-			case FUNCTION_PULSE_SHAPER: {
-				oledText1 = "1. Delay";
-				oledText2 = "1. Repeats #";
-				oledText3 = "2. Delay";
-				oledText4 = "2. Repeats #";
-				break;
-			}
-			case FUNCTION_PULSE_RANDOMIZER: {
-				oledText1 = "1. Acc/Rgn. Prob";
-				oledText2 = "1. Delay";
-				oledText3 = "2. Acc/Rgn. Prob";
-				oledText4 = "2. Delay";
-				break;
-			}
-			case FUNCTION_FM_DRUM_GENERATOR: {
-				oledText1 = "1. BD Morph";
-				oledText2 = "1. BD Variation";
-				oledText3 = "2. SD Morph";
-				oledText4 = "2. SD Variation";
-				break;
-			}
-			case FUNCTION_NUMBER_STATION: {
-				oledText1 = "1. Frequency";
-				oledText2 = "1. Var. Prob";
-				oledText3 = "2. Frequency";
-				oledText4 = "2. Var. Prob";
-				break;
-			}
-			case FUNCTION_BOUNCING_BALL: {
-				oledText1 = "1. Gravity";
-				oledText2 = "1. Bounce";
-				oledText3 = "2. Gravity";
-				oledText4 = "2. Bounce";
-				break;
-			}
-			default: break;
-			}
+			oledText1 = knobLabelsSplitMode[processorFunction[0]].knob1;
+			oledText2 = knobLabelsSplitMode[processorFunction[0]].knob2;
+			oledText3 = knobLabelsSplitMode[processorFunction[0]].knob3;
+			oledText4 = knobLabelsSplitMode[processorFunction[0]].knob4;
 		}
 		else {
 
@@ -729,79 +715,10 @@ struct Apices : Module {
 
 			std::string channelText = (editMode == EDIT_MODE_TWIN) ? "1&2. " : string::f("%d. ", editMode - EDIT_MODE_FIRST + 1);
 
-			switch (currentFunction) {
-			case FUNCTION_ENVELOPE: {
-				oledText1 = channelText + "Attack";
-				oledText2 = channelText + "Decay";
-				oledText3 = channelText + "Sustain";
-				oledText4 = channelText + "Release";
-				break;
-			}
-			case FUNCTION_LFO: {
-				oledText1 = channelText + "Frequency";
-				oledText2 = channelText + "Waveform";
-				oledText3 = channelText + "Wave. Var";
-				oledText4 = channelText + "Phase";
-				break;
-			}
-			case FUNCTION_TAP_LFO: {
-				oledText1 = channelText + "Amplitude";
-				oledText2 = channelText + "Waveform";
-				oledText3 = channelText + "Wave. Var";
-				oledText4 = channelText + "Phase";
-				break;
-			}
-			case FUNCTION_DRUM_GENERATOR: {
-				oledText1 = channelText + "Base Freq";
-				oledText2 = channelText + "Freq. Mod";
-				oledText3 = channelText + "High Freq.";
-				oledText4 = channelText + "Decay";
-				break;
-			}
-			case FUNCTION_MINI_SEQUENCER: {
-				oledText1 = channelText + "Step 1";
-				oledText2 = channelText + "Step 2";
-				oledText3 = channelText + "Step 3";
-				oledText4 = channelText + "Step 4";
-				break;
-			}
-			case FUNCTION_PULSE_SHAPER: {
-				oledText1 = channelText + "Pre-delay";
-				oledText2 = channelText + "Gate time";
-				oledText3 = channelText + "Delay";
-				oledText4 = channelText + "Repeats #";
-				break;
-			}
-			case FUNCTION_PULSE_RANDOMIZER: {
-				oledText1 = channelText + "Trg. Prob.";
-				oledText2 = channelText + "Regen Prob.";
-				oledText3 = channelText + "Delay time";
-				oledText4 = channelText + "Jitter";
-				break;
-			}
-			case FUNCTION_FM_DRUM_GENERATOR: {
-				oledText1 = channelText + "Frequency";
-				oledText2 = channelText + "FM Intens";
-				oledText3 = channelText + "Env. Decay";
-				oledText4 = channelText + "Color";
-				break;
-			}
-			case FUNCTION_NUMBER_STATION: {
-				oledText1 = channelText + "Frequency";
-				oledText2 = channelText + "Var. Prob.";
-				oledText3 = channelText + "Noise";
-				oledText4 = channelText + "Distortion";
-				break;
-			}
-			case FUNCTION_BOUNCING_BALL: {
-				oledText1 = channelText + "Gravity";
-				oledText2 = channelText + "Bounce";
-				oledText3 = channelText + "Amplitude";
-				oledText4 = channelText + "Velocity";
-				break;
-			}
-			default: break;
-			}
+			oledText1 = channelText + knobLabelsTwinMode[currentFunction].knob1;
+			oledText2 = channelText + knobLabelsTwinMode[currentFunction].knob2;
+			oledText3 = channelText + knobLabelsTwinMode[currentFunction].knob3;
+			oledText4 = channelText + knobLabelsTwinMode[currentFunction].knob4;
 		}
 
 	}
@@ -934,11 +851,11 @@ struct ApicesWidget : ModuleWidget {
 		addParam(createLightParamCentered<VCVLightButton<MediumSimpleLight<GreenRedLight>>>(mm2px(Vec(10.375, 34.272)),
 			module, Apices::PARAM_CHANNEL_SELECT, Apices::LIGHT_CHANNEL_SELECT));
 
-		addParam(createParamCentered<PB61303>(mm2px(Vec(10.375, 69.669)), module, Apices::PARAM_TRIGGER_1));
-		addParam(createParamCentered<PB61303>(mm2px(Vec(10.375, 115.9)), module, Apices::PARAM_TRIGGER_2));
+		addParam(createParamCentered<CKD6>(mm2px(Vec(10.375, 69.669)), module, Apices::PARAM_TRIGGER_1));
+		addParam(createParamCentered<CKD6>(mm2px(Vec(10.375, 115.9)), module, Apices::PARAM_TRIGGER_2));
 
-		addChild(createLightCentered<PB61303Light<RedLight>>(mm2px(Vec(10.375, 69.669)), module, Apices::LIGHT_TRIGGER_1));
-		addChild(createLightCentered<PB61303Light<BlueLight>>(mm2px(Vec(10.375, 115.9)), module, Apices::LIGHT_TRIGGER_2));
+		addChild(createLightCentered<CKD6Light<RedLight>>(mm2px(Vec(10.375, 69.669)), module, Apices::LIGHT_TRIGGER_1));
+		addChild(createLightCentered<CKD6Light<BlueLight>>(mm2px(Vec(10.375, 115.9)), module, Apices::LIGHT_TRIGGER_2));
 
 		addChild(createLightCentered<SmallLight<OrangeLight>>(mm2px(Vec(91.652, 25.986)), module, Apices::LIGHT_FUNCTION_1));
 		addChild(createLightCentered<SmallLight<OrangeLight>>(mm2px(Vec(107.402, 25.986)), module, Apices::LIGHT_FUNCTION_2));
@@ -1008,9 +925,9 @@ struct ApicesWidget : ModuleWidget {
 	void appendContextMenu(Menu* menu) override {
 
 		menu->addChild(new MenuSeparator);
-		Apices* peaks = dynamic_cast<Apices*>(this->module);
+		Apices* apices = dynamic_cast<Apices*>(this->module);
 
-		menu->addChild(createBoolPtrMenuItem("Knob pickup (snap)", "", &peaks->bSnapMode));
+		menu->addChild(createBoolPtrMenuItem("Knob pickup (snap)", "", &apices->bSnapMode));
 	}
 
 };
