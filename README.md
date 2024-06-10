@@ -21,3 +21,23 @@ Based on Mutable Instruments Peaks. It exposes every control and has access to t
 ## Aleae
 
 Based on Mutable Instruments Branches. Works as described in the hardware manual. Every option is present on the face plate: no need to go context menu diving.
+
+## Nodi
+
+Based on Mutable Instruments Braids and Southpole's CornrowsX. Exposes every control, some unavailable in other ports.
+
+## Contextus
+
+Based on the Renaissance alternative firmware for Braids. Exposes every control.
+
+## Nebulae
+
+Based on Mutable Instruments' Clouds and Southpole's Smoke; inspired by the Monsoon hardware variant. Exposes every control. Lights behave closer to hardware version.
+
+## Etesia
+
+Based on the Parasite firmware for Clouds and Southpole's Smoke Parasite. Exposes every control.
+
+## Mortuus
+
+Based on the Dead Man's Catch firmware for Peaks.

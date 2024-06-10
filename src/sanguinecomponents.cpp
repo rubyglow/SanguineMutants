@@ -35,6 +35,42 @@ BefacoTinyKnobBlack::BefacoTinyKnobBlack() {
 	bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/BefacoTinyKnobBlack_bg.svg")));
 }
 
+Sanguine1PBlue::Sanguine1PBlue() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PBlue.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PBlue_fg.svg")));
+}
+
+Sanguine1PGrayCap::Sanguine1PGrayCap() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PWhite.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PGrayCap_fg.svg")));
+}
+
+Sanguine1PGreen::Sanguine1PGreen() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PGreen.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PGreen_fg.svg")));
+}
+
+Sanguine1PPurple::Sanguine1PPurple() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PPurple.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PPurple_fg.svg")));
+}
+
+Sanguine1PRed::Sanguine1PRed() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PRed.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PRed_fg.svg")));
+}
+
+Sanguine1PYellow::Sanguine1PYellow() {
+	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PYellow.svg")));
+	bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	fg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PYellow_fg.svg")));
+}
+
 Sanguine1PSBlue::Sanguine1PSBlue() {
 	setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PSBlue.svg")));
 	bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Sanguine1PS_bg.svg")));
@@ -190,6 +226,7 @@ void SanguineLedNumberDisplay::drawLayer(const DrawArgs& args, int layer) {
 }
 
 SanguineTinyNumericDisplay::SanguineTinyNumericDisplay(uint32_t newCharacterCount) : SanguineLedNumberDisplay(newCharacterCount) {
+	displayType = DISPLAY_NUMERIC;
 	box.size = mm2px(Vec(newCharacterCount * 6.45, 8.f));
 	fontSize = 21.4;
 };
@@ -214,10 +251,20 @@ void SanguineTinyNumericDisplay::drawLayer(const DrawArgs& args, int layer) {
 
 				std::string displayValue = "";
 
-				if (values.numberValue) {
-					displayValue = std::to_string(*values.numberValue);
-					if (*values.numberValue < 10)
-						displayValue.insert(0, 1, '0');
+				switch (displayType)
+				{
+				case DISPLAY_NUMERIC: {
+					if (values.numberValue) {
+						displayValue = std::to_string(*values.numberValue);
+						if (*values.numberValue < 10)
+							displayValue.insert(0, 1, '0');
+					}
+					break;
+				}
+				case DISPLAY_STRING: {
+					displayValue = *values.displayText;
+					break;
+				}
 				}
 
 				nvgText(args.vg, textPos.x, textPos.y, displayValue.c_str(), NULL);
@@ -331,24 +378,23 @@ SanguineLightUpSwitch::SanguineLightUpSwitch() {
 	shadow->opacity = 0.0;
 	sw->wrap();
 	box.size = sw->box.size;
-	haloColorOn = nvgRGB(0xAA, 0xAA, 0xAA);
-	haloColorOff = nvgRGB(0x10, 0x10, 0x10);
+}
+
+void SanguineLightUpSwitch::addHalo(NVGcolor haloColor) {
+	halos.push_back(haloColor);
 }
 
 void SanguineLightUpSwitch::drawLayer(const DrawArgs& args, int layer) {
 	if (layer == 1) {
 		if (module && !module->isBypassed()) {
-			std::shared_ptr<window::Svg> svg = frames[static_cast<int>(getParamQuantity()->getValue())];
+			uint32_t frameNum = getParamQuantity()->getValue();
+			std::shared_ptr<window::Svg> svg = frames[static_cast<int>(frameNum)];
 			if (!svg)
 				return;
 			nvgGlobalCompositeBlendFunc(args.vg, NVG_ONE_MINUS_DST_COLOR, NVG_ONE);
 			rack::window::svgDraw(args.vg, svg->handle);
-			// TODO!!! Make this handle n frames!
-			if (getParamQuantity()->getValue() == 0) {
-				drawCircularHalo(args, box.size, haloColorOff, 175, 8.f);
-			}
-			else if (getParamQuantity()->getValue() == 1) {
-				drawCircularHalo(args, box.size, haloColorOn, 175, 8.f);
+			if (frameNum < halos.size()) {
+				drawCircularHalo(args, box.size, halos[frameNum], 175, 8.f);
 			}
 		}
 	}
@@ -358,6 +404,172 @@ void SanguineLightUpSwitch::drawLayer(const DrawArgs& args, int layer) {
 Befaco2StepSwitch::Befaco2StepSwitch() {
 	addFrame(Svg::load(asset::system("res/ComponentLibrary/BefacoSwitch_0.svg")));
 	addFrame(Svg::load(asset::system("res/ComponentLibrary/BefacoSwitch_2.svg")));
+}
+
+// Lights
+
+SanguineMultiColoredShapedLight::SanguineMultiColoredShapedLight() {
+}
+
+/** Returns the parameterized value of the line p2--p3 where it intersects with p0--p1 */
+float SanguineMultiColoredShapedLight::getLineCrossing(math::Vec p0, math::Vec p1, math::Vec p2, math::Vec p3) {
+	math::Vec b = p2.minus(p0);
+	math::Vec d = p1.minus(p0);
+	math::Vec e = p3.minus(p2);
+	float m = d.x * e.y - d.y * e.x;
+	// Check if lines are parallel, or if either pair of points are equal
+	if (std::abs(m) < 1e-6)
+		return NAN;
+	return -(d.x * b.y - d.y * b.x) / m;
+}
+
+NVGcolor SanguineMultiColoredShapedLight::getNVGColor(uint32_t color) {
+	return nvgRGBA((color >> 0) & 0xff, (color >> 8) & 0xff, (color >> 16) & 0xff, (color >> 24) & 0xff);
+}
+
+NVGpaint SanguineMultiColoredShapedLight::getPaint(NVGcontext* vg, NSVGpaint* p, NVGcolor innerColor, NVGcolor outerColor) {
+	assert(p->type == NSVG_PAINT_LINEAR_GRADIENT || p->type == NSVG_PAINT_RADIAL_GRADIENT);
+	NSVGgradient* g = p->gradient;
+	assert(g->nstops >= 1);
+
+	float inverse[6];
+	nvgTransformInverse(inverse, g->xform);
+	math::Vec s, e;
+	// Is it always the case that the gradient should be transformed from (0, 0) to (0, 1)?
+	nvgTransformPoint(&s.x, &s.y, inverse, 0, 0);
+	nvgTransformPoint(&e.x, &e.y, inverse, 0, 1);
+
+	NVGpaint paint;
+	if (p->type == NSVG_PAINT_LINEAR_GRADIENT)
+		paint = nvgLinearGradient(vg, s.x, s.y, e.x, e.y, innerColor, outerColor);
+	else
+		paint = nvgRadialGradient(vg, s.x, s.y, 0.0, 160, innerColor, outerColor);
+	return paint;
+};
+
+void SanguineMultiColoredShapedLight::drawLayer(const DrawArgs& args, int layer) {
+	if (innerColor) {
+		if (layer == 1) {
+			if (module && !module->isBypassed()) {
+				int shapeIndex = 0;
+				NSVGimage* mySvg = svg->handle;
+				NSVGimage* myGradient = svgGradient->handle;
+
+				// Iterate shape linked list
+				for (NSVGshape* shape = mySvg->shapes; shape; shape = shape->next, shapeIndex++) {
+
+					// Visibility
+					if (!(shape->flags & NSVG_FLAGS_VISIBLE))
+						continue;
+
+					nvgSave(args.vg);
+
+					// Opacity
+					if (shape->opacity < 1.0)
+						nvgAlpha(args.vg, shape->opacity);
+
+					// Build path
+					nvgBeginPath(args.vg);
+
+					// Iterate path linked list
+					for (NSVGpath* path = shape->paths; path; path = path->next) {
+
+						nvgMoveTo(args.vg, path->pts[0], path->pts[1]);
+						for (int i = 1; i < path->npts; i += 3) {
+							float* p = &path->pts[2 * i];
+							nvgBezierTo(args.vg, p[0], p[1], p[2], p[3], p[4], p[5]);
+						}
+
+						// Close path
+						if (path->closed)
+							nvgClosePath(args.vg);
+
+						// Compute whether this is a hole or a solid.
+						// Assume that no paths are crossing (usually true for normal SVG graphics).
+						// Also assume that the topology is the same if we use straight lines rather than Beziers (not always the case but usually true).
+						// Using the even-odd fill rule, if we draw a line from a point on the path to a point outside the boundary (e.g. top left) and count the number of times it crosses another path, the parity of this count determines whether the path is a hole (odd) or solid (even).
+						int crossings = 0;
+						math::Vec p0 = math::Vec(path->pts[0], path->pts[1]);
+						math::Vec p1 = math::Vec(path->bounds[0] - 1.0, path->bounds[1] - 1.0);
+						// Iterate all other paths
+						for (NSVGpath* path2 = shape->paths; path2; path2 = path2->next) {
+							if (path2 == path)
+								continue;
+
+							// Iterate all lines on the path
+							if (path2->npts < 4)
+								continue;
+							for (int i = 1; i < path2->npts + 3; i += 3) {
+								float* p = &path2->pts[2 * i];
+								// The previous point
+								math::Vec p2 = math::Vec(p[-2], p[-1]);
+								// The current point
+								math::Vec p3 = (i < path2->npts) ? math::Vec(p[4], p[5]) : math::Vec(path2->pts[0], path2->pts[1]);
+								float crossing = getLineCrossing(p0, p1, p2, p3);
+								float crossing2 = getLineCrossing(p2, p3, p0, p1);
+								if (0.0 <= crossing && crossing < 1.0 && 0.0 <= crossing2) {
+									crossings++;
+								}
+							}
+						}
+
+						if (crossings % 2 == 0)
+							nvgPathWinding(args.vg, NVG_SOLID);
+						else
+							nvgPathWinding(args.vg, NVG_HOLE);
+					}
+
+					// Fill shape with external gradient
+					if (svgGradient) {
+						if (myGradient->shapes->fill.type) {
+							switch (myGradient->shapes->fill.type) {
+							case NSVG_PAINT_COLOR: {
+								nvgFillColor(args.vg, *innerColor);
+								break;
+							}
+							case NSVG_PAINT_LINEAR_GRADIENT:
+							case NSVG_PAINT_RADIAL_GRADIENT: {
+								if (innerColor && outerColor) {
+									nvgFillPaint(args.vg, getPaint(args.vg, &myGradient->shapes->fill, *innerColor, *outerColor));
+								}
+								else {
+									nvgFillColor(args.vg, *innerColor);
+								}
+								break;
+							}
+							}
+							nvgFill(args.vg);
+						}
+					}
+					else {
+						NVGcolor color = nvgRGB(0, 250, 0);
+						nvgFillColor(args.vg, color);
+						nvgFill(args.vg);
+					}
+
+					// Stroke shape
+					if (shape->stroke.type) {
+						nvgStrokeWidth(args.vg, shape->strokeWidth);
+						nvgLineCap(args.vg, (NVGlineCap)shape->strokeLineCap);
+						nvgLineJoin(args.vg, (int)shape->strokeLineJoin);
+
+						switch (shape->stroke.type) {
+						case NSVG_PAINT_COLOR: {
+							NVGcolor color = getNVGColor(shape->stroke.color);
+							nvgStrokeColor(args.vg, color);
+						} break;
+						case NSVG_PAINT_LINEAR_GRADIENT: {
+							break;
+						}
+						}
+						nvgStroke(args.vg);
+					}
+
+					nvgRestore(args.vg);
+				}
+			}
+		}
+	}
 }
 
 // Decorations
