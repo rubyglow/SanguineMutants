@@ -1,56 +1,108 @@
-### 2.0.0
-- First release.
+# 2.3.1
 
-### 2.0.1
+## Changes
 
-- Add: Mutants blank.
+- Changelog organization.
 
-- Funes visual tweaks.
+## Fixes
 
-- Add: missing blinking orange lights when modulating New Synthesis models.
+- Contextus crashing Rack.
 
-- Add: optionally display modulated model for first polyphonic channel (from suggestions).
 
-- Add: modulate model using C0-B1 (from suggestions).
+# 2.3.0
 
-- Add: manual.
+## New Modules
 
-- Misc. tweaks and fixes.
+### Nodi
 
-### 2.1.0
+Based on MI's Braids.
 
-- Add Apices - Multifunction gap-filler.
+### Contextus
 
-### 2.2.0
+Based on the Renaissance firmware for Braids.
 
-- Add Aleae - Bernoulli gates.
+### Nebulae
 
-- Change knobs supplier.
+Based on Clouds and Southpole's Smoke, inspired by the Monsoon variant.
 
-- Prettify manual.
+### Etesia
 
-- Misc. small fixes and changes.
+Based on the Clouds Parasite firmware.
 
-### 2.3.0
+### Mortuus
 
-- Move manuals to their own repository.
+Based on the Dead Man's Catch firmware for Peaks.
 
-- Add Nodi: based on MI's Braids.
-
-- Add Contextus: based on the Renaissance firmware for Braids.
-
-- Add Nebulae: based on Clouds and Southpole's Smoke, inspired by the Monsoon variant.
-
-- Add Etesia: based on the Clouds Parasite firmware.
-
-- Add Mortuus: based on the Dead Man's Catch firmware for Peaks.
+## Additions
 
 - Make Clouds based modules lights behave a little closer to their hardware counterparts.
 
-- Fix: SVG light behavior.
+## Changes
 
-- Change: Apices buttons (for the last time).
+- Move manuals to their own repository.
 
-- Fix: Apices button lights.
+- Apices buttons (for the last time).
 
-- Fix: Apices trigger detection.
+## Fixes
+
+- SVG light behavior.
+
+- Apices button lights.
+
+- Apices trigger detection.
+
+
+# 2.2.0
+
+## New Modules
+
+### Aleae - Bernoulli gates.
+
+## Changes
+
+- Knobs supplier.
+
+- Prettify manual.
+
+## Fixes
+
+- Misc. small fixes and changes.
+
+
+# 2.1.0
+
+## New Modules
+
+### Apices
+
+Based in MI's Peaks.
+
+
+# 2.0.1
+
+## New Modules
+
+### Mutants blank.
+
+## Additions
+
+- Missing blinking orange lights when modulating New Synthesis models in Funes.
+
+- Optionally display modulated model for first polyphonic channel (from suggestions).
+
+- Modulate model using C0-B1 (from suggestions).
+
+- Manual.
+
+## Changes
+
+- Funes visual tweaks.
+
+## Fixes
+
+- Misc. tweaks and fixes.
+
+
+# 2.0.0
+
+First release.
