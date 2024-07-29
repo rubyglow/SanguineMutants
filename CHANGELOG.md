@@ -12,6 +12,12 @@
 
 - Mortuus: P.L.O.
 
+- Nebulae time stretcher.
+
+- Renaissance spelling.
+
+- Aleae reset.
+
 
 # 2.3.1
 
