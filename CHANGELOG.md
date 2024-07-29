@@ -6,7 +6,7 @@
 
 ## Fixes
 
-- Apices and Mortuus handle CV triggers better.
+- Better CV trigger handling for Apices and Mortuus.
 
 - Apices and Mortuus: Tap LFO.
 
