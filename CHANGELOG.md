@@ -1,3 +1,18 @@
+# 2.3.2
+
+## Changes
+
+- Display values for certain knobs.
+
+## Fixes
+
+- Apices and Mortuus handle CV triggers better.
+
+- Apices and Mortuus: Tap LFO.
+
+- Mortuus: P.L.O.
+
+
 # 2.3.1
 
 ## Changes
